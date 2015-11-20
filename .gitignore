@@ -1,0 +1,23 @@
+Assets/Arcadia
+Library
+Temp
+Obj
+Build
+
+/*.csproj
+/*.sln
+/*.suo
+/*.user
+/*.userprefs
+/*.pidb
+/*.booproj
+/*.md
+
+#Unity3D Generated File On Crash Reports
+sysinfo.txt
+
+/*.sublime-project
+/*.sublime-workspace
+
+
+Blends/*.blend1
