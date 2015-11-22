@@ -6,18 +6,18 @@
            [UnityEngine Ray
             Physics RaycastHit]))
 
+(declare start! update!)
+(defcomponent EntityController []
+  (Start  [this] (start! this))
+  (Update [this] (update! this)))
+
 (def target   (atom nil))
 (def selected (atom #{}))
 
-(declare start! update!)
-(defcomponent EntityController []
-  (Start  [^EntityController this] (start! this))
-  (Update [^EntityController this] (update! this)))
+(defn start! [this]
+  (build! "minotaur"))
 
-(defn start! [^EntityController this]
-  (prefab! "minotaur"))
-
-(defn handle-controls! [^EntityController this]
+(defn handle-controls! [this]
   (cond
     (right-click)
     (if-let [hit (mouse->hit #(not (nil? (the* % Entity))))]
@@ -35,8 +35,8 @@
   (if (and (controllable intity) (is-selected intity))
       (assoc-in intity [:steering :destination] @target)))
 
-(defn sync! [^EntityController this]
-  (doseq [^Entity entity (child-components this Entity)]
+(defn sync! [this]
+  (doseq [entity (child-components this Entity)]
     (let [intity (->intity entity)
           id     (->id entity)
           pos    (position entity)
@@ -51,7 +51,7 @@
 
 (defn reset-target! [] (reset! target nil))
 
-(defn update! [^EntityController this]
+(defn update! [this]
   (handle-controls! this)
   (sync! this)
   (update-intities!)

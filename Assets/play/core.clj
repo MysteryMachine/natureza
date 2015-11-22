@@ -114,9 +114,9 @@
   ([] (mouse->hit (fn [_] false)))
   ([filter-fn]
    (let [ray (.ScreenPointToRay (main-camera) (mouse-pos))
-         cast (Caster/Raycast ^Ray ray)]
-     (if (.hit ^CastResult cast)
-       (let [info (.hitInfo cast)
+         caster (the "Caster" Caster)]
+     (if (.Cast caster ^Ray ray)
+       (let [info (.hit caster)
              go   (->go (.transform info))]
          (if (filter-fn go) go (.point info)))))))
 

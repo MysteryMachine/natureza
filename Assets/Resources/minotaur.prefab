@@ -9,8 +9,8 @@ GameObject:
   m_Component:
   - 4: {fileID: 471072}
   - 195: {fileID: 19530350}
-  - 114: {fileID: 11450878}
-  - 114: {fileID: 11464068}
+  - 114: {fileID: 11490700}
+  - 114: {fileID: 11461130}
   m_Layer: 0
   m_Name: minotaur
   m_TagString: Untagged
@@ -77,7 +77,7 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
---- !u!114 &11450878
+--- !u!114 &11461130
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -90,7 +90,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   argName: 
   _serialized_data: 
---- !u!114 &11464068
+--- !u!114 &11490700
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}

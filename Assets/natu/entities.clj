@@ -3,34 +3,31 @@
         play.core)
   (:import [UnityEngine Vector3]))
 
-(def intities (atom {}))
-
-(declare sync-steering!)
-(declare new-id)
-
+(declare sync-steering! new-id)
 (defcomponent Entity [^Int32 id]
-  (Awake  [^Entity this] (new-id this))
-  (Update [^Entity this] (sync-steering! this)))
+  (Awake  [this] (new-id this))
+  (Update [this] (sync-steering! this)))
 
-(def new-id
-  (let [id-gen (atom 0)]
-    (fn [^Entity this]
-      (let [id (int (inc @id-gen))
-            new-intities (assoc @intities id {})]
-        (reset! id-gen id)
-        (set! (.id this) id)
-        (reset! intities new-intities)))))
+(def intities (atom {}))
+(def id-gen (atom 0))
+
+(defn new-id [this]
+  (let [id (int (inc @id-gen))
+        new-intities (assoc @intities id {})]
+    (reset! id-gen id)
+    (set! (.id this) id)
+    (reset! intities new-intities)))
 
 (defn destination [dest]
   (if (= Vector3 (type dest)) dest (position dest)))
 
-(defn ->id [^Entity e] (.id e))
-(defn ->intity [^Entity e] (get @intities (->id e)))
-(defn ->intity! [^Entity e change]
+(defn ->id [e] (.id e))
+(defn ->intity [e] (get @intities (->id e)))
+(defn ->intity! [e change]
   (reset! intities (assoc @intities (->id e) change)))
+(defn controllable [e] (-> e ->intity :controllable))
 
-(defn controllable [^Entity e] (-> e ->intity :controllable))
-(defn sync-steering! [^Entity this]
+(defn sync-steering! [this]
   (let [agent (nav-mesh-agent* this)
         steering (-> this ->intity :steering)
         dest (:destination steering)]
@@ -64,5 +61,5 @@
 
 (defn build! [name & {:as args}]
   (let [go     (prefab! name)
-        ^Entity entity (the go Entity)]
+        entity (the go Entity)]
     (->intity! entity (into (basis (keyword name)) args))))
