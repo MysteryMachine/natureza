@@ -101,7 +101,7 @@
     (anim-set*! this argName (mag (.velocity (nav-mesh-agent* this))))))
 
 ;; Raycasting
-
+ 
 (defn main-camera ^Camera [] (Camera/main))
 
 (defn mouse-pos ^Vector3 [] (Input/mousePosition))
@@ -114,8 +114,8 @@
   ([] (mouse->hit (fn [_] false)))
   ([filter-fn]
    (let [ray (.ScreenPointToRay (main-camera) (mouse-pos))
-         caster (the "Caster" Caster)]
-     (if (.Cast caster ^Ray ray)
+         caster (Caster. ^Ray ray)]
+     (if (.success caster)
        (let [info (.hit caster)
              go   (->go (.transform info))]
          (if (filter-fn go) go (.point info)))))))
