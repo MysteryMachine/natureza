@@ -15,13 +15,14 @@
   (Update [^EntityController this] (update! this)))
 
 (defn start! [^EntityController this]
-  (prefab! "minotaur"))
+  (build! "minotaur" :controllable true)
+  #_(build! "rat" :controllable false))
 
 (defn handle-controls! [^EntityController this]
   (cond
     (right-click)
     (if-let [hit (mouse->hit #(not (nil? (the* % Entity))))]
-      (reset! target hit))
+      (swap! target hit))
     (left-click)
     (let [entities (child-components this Entity)
           owned    (filter controllable entities)]
@@ -43,7 +44,7 @@
           new-intity (-> intity
                          (assoc :position pos)
                          (retarget id))]
-      (reset! intities (assoc @intities id new-intity)))))
+      (swap! intities #(assoc % id new-intity)))))
 
 (defn update-intities! []
   (let [is @intities]
@@ -52,7 +53,8 @@
 (defn reset-target! [] (reset! target nil))
 
 (defn update! [^EntityController this]
-  (handle-controls! this)
-  (sync! this)
-  (update-intities!)
-  (reset-target!))
+  (comment
+    (handle-controls! this)
+    (sync! this)
+    (update-intities!)
+    (reset-target!)))

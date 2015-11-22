@@ -11,7 +11,7 @@ GameObject:
   - 137: {fileID: 13714054}
   - 95: {fileID: 9545040}
   m_Layer: 0
-  m_Name: rat
+  m_Name: rat-model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26,9 +26,9 @@ GameObject:
   m_Component:
   - 4: {fileID: 442308}
   - 195: {fileID: 19530744}
-  - 114: {fileID: 11441170}
+  - 65: {fileID: 6536808}
   m_Layer: 0
-  m_Name: Rat
+  m_Name: rat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -40,8 +40,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 166572}
-  m_LocalRotation: {x: 2.77555756e-17, y: .710220575, z: 8.46648831e-08, w: .703979313}
-  m_LocalPosition: {x: -46.8800011, y: 1.60000002, z: -.800000012}
+  m_LocalRotation: {x: -8.43337773e-08, y: .763978839, z: 7.48073603e-09, w: -.64524132}
+  m_LocalPosition: {x: 12.3868294, y: -.714580536, z: .506002963}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 443490}
@@ -59,6 +59,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 442308}
   m_RootOrder: 0
+--- !u!65 &6536808
+BoxCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 166572}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: .930000007, y: .930000007, z: 1.96000004}
+  m_Center: {x: .0599999987, y: -.370000005, z: -.109999999}
 --- !u!95 &9545040
 Animator:
   serializedVersion: 3
@@ -76,19 +88,6 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
---- !u!114 &11441170
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 166572}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 375886079, guid: 463ad67ade4cf409b84a10d26afaa1a6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  argName: 
-  _serialized_data: 
 --- !u!137 &13714054
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1

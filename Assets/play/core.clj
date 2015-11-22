@@ -6,8 +6,9 @@
     Debug        Physics
     Transform    RaycastHit
     Input        Ray
-    Vector3      Camera]
-   Caster))
+    Vector3      Camera
+    Resources    Quaternion]
+   Caster)) 
 
 ;; Logging
 (defn log [msg] (Debug/Log (str msg)))
@@ -50,6 +51,10 @@
   (^Vector3 [[x y z]] (Vector3. x y z))
   (^Vector3 [x y z]   (Vector3. x y z)))
 
+(defn q4
+  (^Quaternion [[x y z a]] (Quaternion. x y z a))
+  (^Quaternion [x y z a] (Quaternion. x y z a)))
+
 (defn mag    ^Double [obj] (.magnitude obj))
 (defn sqmag  ^Double [obj] (.sqrMagnitude obj))
 (defn normal ^Double [obj] (.normalized obj))
@@ -90,23 +95,6 @@
 (defmethod anim-set*! :default [this name arg]
   (throw (str "Unsure how to set animation " arg " for property " name)))
 
-(comment
-  (defmulti  anim-set! #(type %3))
-  (defmethod anim-set! Boolean [this name arg]
-    (.SetBool (animator this) name arg))
-  (defmethod anim-set! nil [this name arg]
-    (.SetTrigger (animator this) name))
-  (defmethod anim-set! Double [this name arg]
-    (.SetFloat (animator this) name (float arg)))
-  (defmethod anim-set! Single [this name arg]
-    (.SetFloat (animator this) name arg))
-  (defmethod anim-set! Int64 [this name arg]
-    (.SetInteger (animator this) name (int arg)))
-  (defmethod anim-set! Int32 [this name arg]
-    (.SetInteger (animator this) name arg))
-  (defmethod anim-set! :default [this name arg]
-    (throw (str "Unsure how to set animation " arg " for property " name))))
-
 (defcomponent SpeedAnimSync [^String argName]
   (Awake [this] (set! argName "Speed"))
   (Update [this]
@@ -125,10 +113,24 @@
 (defn mouse->hit
   ([] (mouse->hit (fn [_] false)))
   ([filter-fn]
-   (let [^Ray ray (.ScreenPointToRay (main-camera) (mouse-pos))
-         cast (Caster/Raycast ray)]
-     (if (.hit cast)
+   (let [ray (.ScreenPointToRay (main-camera) (mouse-pos))
+         cast (Caster/Raycast ^Ray ray)]
+     (if (.hit ^CastResult cast)
        (let [info (.hitInfo cast)
              go   (->go (.transform info))]
-         (log (filter-fn go))
          (if (filter-fn go) go (.point info)))))))
+
+;; Prefab
+(defn clone!
+  ([^GameObject obj] (GameObject/Instantiate obj))
+  ([^GameObject obj ^Vector3 pos ^Quaternion rot] (GameObject/Instantiate obj pos rot)))
+
+(defn prefab!
+  ([^String name] (clone! (Resources/Load name)))
+  ([^String name  ^Vector3 pos ^Quaternion rot]
+   (clone! (Resources/Load name) pos rot)))
+
+(defn parent [obj] (.parent (the obj Transform)))
+
+(defn parent! [obj v3]
+  (set! (.parent (the obj Transform)) v3))
