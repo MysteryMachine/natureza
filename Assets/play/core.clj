@@ -8,7 +8,8 @@
     Input        Ray
     Vector3      Camera
     Resources    Quaternion]
-   Caster)) 
+   Caster
+   ArcadiaState))
 
 ;; Logging
 (defn log [msg] (Debug/Log (str msg)))
@@ -25,24 +26,23 @@
 
 (defn ->go [obj] (.gameObject obj))
 
-(defn child-components [name component]
-  (let [obj (the name)
-        prelim (.GetComponentsInChildren obj component)]
-    (if (empty? prelim)
-      []
-      (let [fprelim (->go (first prelim))
-            ;; When I ask for a component in CHILDREN, it should
-            ;; just be in the children, Unity. :U
-            comps (if (= fprelim obj)
-                    (rest prelim)
-                    prelim)]
-        comps))))
+(defn parent [obj] (.parent (transform obj)))
+(defn parent? [obj par] (= (parent obj) (transform par)))
+(defn parent! [obj par]
+  (set! (.parent (the obj Transform)) (the par Transform)))
+
+(defn child-components
+  ([name] (child-components name Transform))
+  ([name component]
+   (let [obj (the name)
+         prelim (.GetComponentsInChildren obj component)]
+     (filter #(parent? % obj) prelim))))
 
 (defn children
   ([top-obj] (children top-obj identity))
   ([top-obj filter-fn]
    (let [kids (map ->go (child-components top-obj Transform))]
-     (filter filter-fn kids))))
+     (filter #(and (parent? % top-obj) (filter-fn %)) kids))))
 
 (defn ->name ^String [obj] (.name obj))
 
@@ -59,7 +59,9 @@
 (defn sqmag  ^Double [obj] (.sqrMagnitude obj))
 (defn normal ^Double [obj] (.normalized obj))
 
-(defn position ^Vector3 [obj] (.position (the obj Transform)))
+(defn transform [obj] (the obj Transform))
+
+(defn position ^Vector3 [obj] (.position (transform obj)))
 (defn dist [a b] (Vector3/Distance (position a) (position b)))
 
 ;; Nav Mesh Agent
@@ -95,10 +97,9 @@
 (defmethod anim-set*! :default [this name arg]
   (throw (str "Unsure how to set animation " arg " for property " name)))
 
-(defcomponent SpeedAnimSync [^String argName]
-  (Awake [this] (set! argName "Speed"))
-  (Update [this]
-    (anim-set*! this argName (mag (.velocity (nav-mesh-agent* this))))))
+(defn sync-agent-velocity! [this]
+  (anim-set*! this "velocity" (mag (.velocity (nav-mesh-agent* this))))
+  )
 
 ;; Raycasting
  
@@ -122,15 +123,41 @@
 
 ;; Prefab
 (defn clone!
-  ([^GameObject obj] (GameObject/Instantiate obj))
-  ([^GameObject obj ^Vector3 pos ^Quaternion rot] (GameObject/Instantiate obj pos rot)))
+  ([^GameObject obj]
+   (let [go (GameObject/Instantiate obj)]
+     (set! (.name go) (.name obj))
+     go))
+  ([^GameObject obj ^Vector3 pos ^Quaternion rot]
+   (let [go (GameObject/Instantiate obj pos rot)]
+     (set! (.name go) (.name obj))
+     go)))
 
 (defn prefab!
   ([^String name] (clone! (Resources/Load name)))
   ([^String name  ^Vector3 pos ^Quaternion rot]
    (clone! (Resources/Load name) pos rot)))
 
-(defn parent [obj] (.parent (the obj Transform)))
+;; Arcadia State
+(defn state-component [obj] (the obj ArcadiaState))
+(defn state  [obj] (.state (state-component obj)))
+(defn state! [obj arg] (set! (.state (the obj ArcadiaState)) arg))
+(defn swat! [obj fun]
+  (let [st (the obj ArcadiaState)]
+    (set! (.state st) (fun (.state st)))))
 
-(defn parent! [obj v3]
-  (set! (.parent (the obj Transform)) v3))
+;; Id
+(def ^:private id-gen (atom 0))
+(def ^:private ids    (atom {}))
+(def ^:private objs   (atom {}))
+
+(defn ->id [obj]
+  (let [go (->go obj)
+        retval (get @objs go)]
+    (if retval
+      retval
+      (let [retval (reset! id-gen (inc @id-gen))]
+        (reset! ids  (assoc @ids  retval go))
+        (reset! objs (assoc @objs go     retval))
+        retval))))
+
+(defn ->obj [id] (get @ids id))

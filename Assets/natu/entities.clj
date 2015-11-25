@@ -1,65 +1,24 @@
 (ns natu.entities
   (:use arcadia.core
-        play.core)
-  (:import [UnityEngine Vector3]))
-
-(declare sync-steering! new-id)
-(defcomponent Entity [^Int32 id]
-  (Awake  [this] (new-id this))
-  (Update [this] (sync-steering! this)))
-
-(def intities (atom {}))
-(def id-gen (atom 0))
-
-(defn new-id [this]
-  (let [id (int (inc @id-gen))
-        new-intities (assoc @intities id {})]
-    (reset! id-gen id)
-    (set! (.id this) id)
-    (reset! intities new-intities)))
+        play.core
+        natu.intities)
+  (:import [UnityEngine Vector3])) 
 
 (defn destination [dest]
   (if (= Vector3 (type dest)) dest (position dest)))
 
-(defn ->id [e] (.id e))
-(defn ->intity [e] (get @intities (->id e)))
-(defn ->intity! [e change]
-  (reset! intities (assoc @intities (->id e) change)))
-(defn controllable [e] (-> e ->intity :controllable))
+(defn controllable?  [e] (-> e state :controllable))
+(defn ->steering     [e] (-> e state :steering))
+(defn ->destination  [e] (-> e ->steering :destination))
+(defn ->speed        [e] (-> e ->steering :speed))
 
+(defn id->intity [id] (state (->obj id)))
+
+;; Hooks
 (defn sync-steering! [this]
   (let [agent (nav-mesh-agent* this)
-        steering (-> this ->intity :steering)
-        dest (:destination steering)]
-    (if dest (move! this (destination dest)))
-    (set! (.speed agent) (:speed steering))))
+        dest (->destination this)]
+    (if dest (move! this (->destination this)))
+    (set! (.speed agent) (->speed this))))
 
-(defprotocol IntityProtocol
-  (update-map [this intity-map]))
-
-(defrecord Rat [])
-(extend-type Rat
-  IntityProtocol
-  (update-map [this intity-map] intity-map))
-(def rat-basis
-  (map->Rat
-   {:steering {:speed 4}
-    :hp 10}))
-
-(defrecord Minotaur [])
-(extend-type Minotaur
-  IntityProtocol
-  (update-map [this intity-map] intity-map))
-(def minotaur-basis
-  (map->Minotaur
-   {:steering {:speed 2}
-    :hp 10}))
-
-(def basis
-  {:minotaur minotaur-basis 
-   :rat      rat-basis})
-
-(defn build! [name & {:as args}]
-  (let [go     (prefab! name)
-        entity (the go Entity)]
-    (->intity! entity (into (basis (keyword name)) args))))
+(defn start! [this] (swat! this basis))
