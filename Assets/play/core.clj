@@ -7,24 +7,32 @@
     Transform    RaycastHit
     Input        Ray
     Vector3      Camera
-    Resources    Quaternion]
+    Resources    Quaternion
+    GameObject]
    Caster
    ArcadiaState))
 
 ;; Logging
 (defn log [msg] (Debug/Log (str msg)))
 
+(defn go? [obj] (= GameObject (type obj)))
+
 ;; Accessing Object
 (defn the
   "For accessing an object based on a name and component"
   ([arg] (if (string? arg) (object-named arg) arg))
-  ([obj component] (get-component (the obj) component)))
+  ([obj component]
+   (if-let [go (the obj)]
+     (get-component go component)
+     nil)))
 
 (defn the*
   [obj component]
   (.GetComponentInChildren (the obj) component))
 
 (defn ->go [obj] (.gameObject obj))
+
+(defn transform [obj] (the obj Transform))
 
 (defn parent [obj] (.parent (transform obj)))
 (defn parent? [obj par] (= (parent obj) (transform par)))
@@ -59,8 +67,6 @@
 (defn sqmag  ^Double [obj] (.sqrMagnitude obj))
 (defn normal ^Double [obj] (.normalized obj))
 
-(defn transform [obj] (the obj Transform))
-
 (defn position ^Vector3 [obj] (.position (transform obj)))
 (defn dist [a b] (Vector3/Distance (position a) (position b)))
 
@@ -80,7 +86,7 @@
 (defn animator* ^Animator [obj] (the* obj Animator))
 
 ;; Look into maybe using a macro to define all these
-;; in the future? 
+;; in the future?
 (defmulti  anim-set*! #(type %3))
 (defmethod anim-set*! Boolean [this ^String name arg]
   (.SetBool (animator* this) name arg))
@@ -98,28 +104,38 @@
   (throw (str "Unsure how to set animation " arg " for property " name)))
 
 (defn sync-agent-velocity! [this]
-  (anim-set*! this "velocity" (mag (.velocity (nav-mesh-agent* this))))
-  )
+  (anim-set*!
+   this
+   "velocity"
+   (mag (.velocity (nav-mesh-agent* this)))))
 
 ;; Raycasting
- 
+
 (defn main-camera ^Camera [] (Camera/main))
 
 (defn mouse-pos ^Vector3 [] (Input/mousePosition))
 
 (defn right-click [] (Input/GetMouseButtonDown 1))
+(defn right-held  [] (Input/GetMouseButton     1))
+(defn right-up    [] (Input/GetMouseButtonUp   1))
 
 (defn left-click  [] (Input/GetMouseButtonDown 0))
+(defn left-held   [] (Input/GetMouseButton     0))
+(defn left-up     [] (Input/GetMouseButtonUp   0))
 
 (defn mouse->hit
-  ([] (mouse->hit (fn [_] false)))
-  ([filter-fn]
+  ([] (mouse->hit (fn [_] true) (fn [_] false)))
+  ([obj-filter] (mouse->hit obj-filter (fn [_] false)))
+  ([obj-filter point-filter]
    (let [ray (.ScreenPointToRay (main-camera) (mouse-pos))
          caster (Caster. ^Ray ray)]
      (if (.success caster)
        (let [info (.hit caster)
              go   (->go (.transform info))]
-         (if (filter-fn go) go (.point info)))))))
+         (cond
+           (obj-filter go) go
+           (point-filter go) (.point info)
+           :else nil))))))
 
 ;; Prefab
 (defn clone!
@@ -139,7 +155,9 @@
 
 ;; Arcadia State
 (defn state-component [obj] (the obj ArcadiaState))
-(defn state  [obj] (.state (state-component obj)))
+(defn state  [obj] (if-let [state-comp (state-component obj)]
+                     (.state state-comp)
+                     nil))
 (defn state! [obj arg] (set! (.state (the obj ArcadiaState)) arg))
 (defn swat! [obj fun]
   (let [st (the obj ArcadiaState)]
