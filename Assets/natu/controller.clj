@@ -36,6 +36,8 @@
           (assoc :lctrl  :click)
           (assoc :ctrlpt mpos)))))
 
+(defn half-dims [] (v2* (scrn-dims) 0.5))
+
 (defn corners [ctrlpt1 ctrlpt2]
   (let [x1 (.x ctrlpt1) x2 (.x ctrlpt2)
         y1 (.y ctrlpt1) y2 (.y ctrlpt2)]
@@ -65,10 +67,26 @@
   (when-let [hit (mouse->hit controllable?)]
     (swat! this #(assoc % :selected #{(->id hit)}))))
 
+(defn selectbox-center [this]
+  (scrn->worldpt
+   (v2+
+    (half-dims)
+    (.anchoredPosition (->selection-box this)))))
+
+(defn selectbox-dims [this]
+  (let [rect (.rect (->selection-box this))
+        hfdm (half-dims)
+        p1 (v2+ hfdm (v2 (.x rect) (.y rect)))
+        p2 (v2+ hfdm (v2 (.xMax rect) (.yMax rect)))]
+     (v3- (scrn->worldpt p2)
+          (scrn->worldpt p1))))
+
 (defn drag-over! [this]
-  (let [entities  (child-components this)
-        owned     (filter controllable? entities)
-        owned-ids (into #{} (map ->id owned))]
+  (let [hits (boxcast (selectbox-center this)
+                      (selectbox-dims this)
+                      controllable?)
+        entities (map #(.transform %) hits)
+        owned-ids (into #{} (map ->id entities))]
     (reset-selection! this)
     (swat! this #(assoc % :selected owned-ids))))
 

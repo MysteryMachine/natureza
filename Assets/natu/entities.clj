@@ -2,7 +2,7 @@
   (:use arcadia.core
         play.core
         natu.intities)
-  (:import [UnityEngine Vector3])) 
+  (:import [UnityEngine Vector3]))
 
 (defn destination [dest]
   (if (= Vector3 (type dest)) dest (position dest)))

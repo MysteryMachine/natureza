@@ -353,11 +353,11 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: .300000012
+  near clip plane: .00999999978
   far clip plane: 1000
   field of view: 60
-  orthographic: 0
-  orthographic size: 5
+  orthographic: 1
+  orthographic size: 20
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -378,8 +378,8 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 212433565}
   m_LocalRotation: {x: .297468543, y: 0, z: 0, w: .954731643}
-  m_LocalPosition: {x: -25.3199997, y: 19.4799995, z: -20.3899994}
-  m_LocalScale: {x: 2.64398885, y: 2.61842418, z: 2.99673128}
+  m_LocalPosition: {x: -25.3199997, y: 16.2199993, z: -22.6399994}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -520,9 +520,9 @@ Canvas:
   m_GameObject: {fileID: 449384479}
   m_Enabled: 1
   serializedVersion: 2
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
+  m_RenderMode: 1
+  m_Camera: {fileID: 212433569}
+  m_PlaneDistance: .0109999999
   m_PixelPerfect: 1
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -940,7 +940,7 @@ GameObject:
   - 65: {fileID: 1829042422}
   - 23: {fileID: 1829042421}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Cube (7)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1013,7 +1013,7 @@ GameObject:
   - 65: {fileID: 1839838948}
   - 23: {fileID: 1839838947}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Cube (6)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -8,8 +8,8 @@
     Input        Ray
     Vector2      Camera
     Resources    Quaternion
-    GameObject   Screen]
-   Caster
+    GameObject   Screen
+    Rigidbody    Rect]
    ArcadiaState))
 
 ;; Logging
@@ -63,21 +63,54 @@
 (defn v2 [x y] (Vector2. x y))
 
 (defn v2op [op v1 vs]
-  (Vector2. (reduce #(op %1 (.x %2)) (.x v1) vs)
-            (reduce #(op %1 (.y %2)) (.y v1) vs)))
-
+  (v2 (reduce #(op %1 (.x %2)) (.x v1) vs)
+      (reduce #(op %1 (.y %2)) (.y v1) vs)))
 (defn v2-
   ([v] (v2 (- (.x v))
            (- (.y v))))
   ([v v1 & vs] (v2op - v (cons v1 vs))))
+
 (defn v2+ [v1 & vs] (v2op + v1 vs))
 
 (defn v2* [v n]
-  (Vector2. (* n (.x v)) (* n (.y v))))
+  (v2 (* n (.x v)) (* n (.y v))))
 
 (defn v3
   (^Vector3 [[x y z]] (Vector3. x y z))
   (^Vector3 [x y z]   (Vector3. x y z)))
+
+(defn v3op [op v1 vs]
+  (v3 (reduce #(op %1 (.x %2)) (.x v1) vs)
+      (reduce #(op %1 (.y %2)) (.y v1) vs)
+      (reduce #(op %1 (.z %2)) (.z v1) vs)))
+(defn v3-
+  ([v] (v3 (- (.x v))
+           (- (.y v))
+           (- (.z v))))
+  ([v v1 & vs] (v3op - v (cons v1 vs))))
+
+(defn v3+ [v & vs] (v3op + v vs))
+
+(defn v3* [v n]
+  (v3 (* n (.x v))
+      (* n (.y v))
+      (* n (.z v))))
+
+(defn vx [v] (.x v))
+(defn vy [v] (.y v))
+(defn vz [v] (.z v))
+
+(defn v2x [v i] (v2 i (vy v)))
+(defn v2y [v i] (v2 (vx v) i))
+
+(defn v3x [v i] (v3 i (vy v) (vz i)))
+(defn v3y [v i] (v3 (vx v) i (vz i)))
+(defn v3z [v i] (v3 (vx v) (vy v) i))
+
+(defn v2->v3 [v]
+  (v3 (.x v) (.y v) 0))
+(defn v3->v2 [v]
+  (v2 (.x v) (.y v)))
 
 (defn q4
   (^Quaternion [[x y z a]] (Quaternion. x y z a))
@@ -87,11 +120,12 @@
 (defn sqmag  ^Double [obj] (.sqrMagnitude obj))
 (defn normal ^Double [obj] (.normalized obj))
 
+;; Tranform
+
+(defn forward [obj] (.forward (the obj Transform)))
+
 (defn position ^Vector3 [obj] (.position (transform obj)))
 (defn dist [a b] (Vector3/Distance (position a) (position b)))
-
-(defn scrn-dims []
-  (v2 Screen/width Screen/height))
 
 ;; Nav Mesh Agent
 (defn nav-mesh-agent ^NavMeshAgent [obj] (the obj NavMeshAgent))
@@ -135,10 +169,6 @@
    "velocity"
    (mag (.velocity (nav-mesh-agent* this)))))
 
-;; Raycasting
-
-(defn main-camera ^Camera [] (Camera/main))
-
 ;; Mouse
 
 (defn mouse-pos  ^Vector3 [] (Input/mousePosition))
@@ -154,22 +184,60 @@
 (defn left-held   [] (Input/GetMouseButton     0))
 (defn left-up     [] (Input/GetMouseButtonUp   0))
 
+;; Screen
+
+(defn main-camera ^Camera [] (Camera/main))
+(defn scrn-dims []
+  (v2 Screen/width Screen/height))
+(defn scrn->worldpt [v]
+  (.ScreenToWorldPoint
+   (main-camera)
+   (v3 (.x v)
+       (.y v)
+       (.nearClipPlane (main-camera)))))
+(defn mouse->scrn []
+  (.ScreenPointToViewportPoint (main-camera) (mouse-pos)))
+;; Raycasting
+
+(defn scrnpt->ray  [camera pt] (.ScreenPointToRay camera pt))
+(defn mouse->ray [] ^Ray (scrnpt->ray (main-camera) (mouse-pos)))
+
+(defn ray->direction [^Ray ray] (.direction ray))
+
+(defn raycast [^Ray ray] (Physics/RaycastAll ray))
+(defn sweep [obj v] (.SweepTestAll (the obj Rigidbody) v))
+(defn boxcast
+  ([worldpt size] (boxcast worldpt size identity))
+  ([worldpt size op]
+   (let [dir (forward (main-camera))
+         cube (create-primitive :cube)]
+     (parent! cube (main-camera))
+     (add-component cube Rigidbody)
+     (set! (.useGravity (the cube Rigidbody)) false)
+     (set! (.position (.transform cube)) worldpt)
+     (set! (.localRotation (.transform cube)) (q4 0 0 0 1))
+     (set! (.localScale (.transform cube)) size)
+     (let [swept (sweep cube dir)]
+       (destroy cube)
+       (filter
+        (fn [o]
+          (if-let [trs (.transform o)]
+            (do (log trs)
+              (if-let [go (.gameObject trs)]
+                (op go)))))
+        (vec swept))))))
+
 (defn mouse->hit
   ([] (mouse->hit (fn [_] true) (fn [_] false)))
   ([obj-filter] (mouse->hit obj-filter (fn [_] false)))
   ([obj-filter point-filter]
-   (let [ray (.ScreenPointToRay (main-camera) (mouse-pos))
-         caster (Caster. ^Ray ray)]
-     (if (.success caster)
-       (let [info (.hit caster)
-             go   (->go (.transform info))]
+   (let [hit (first (raycast (mouse->ray)))]
+     (when hit
+       (let [go   (->go (.transform hit))]
          (cond
            (obj-filter go) go
-           (point-filter go) (.point info)
+           (point-filter go) (.point hit)
            :else nil))))))
-
-(defn mouse->scrn []
-  (.ScreenPointToViewportPoint (main-camera) (mouse-pos)))
 
 ;; Prefab
 (defn clone!
@@ -191,7 +259,7 @@
 (defn state-component [obj] (the obj ArcadiaState))
 (defn state  [obj] (if-let [state-comp (state-component obj)]
                      (.state state-comp)
-                     nil))
+                     {}))
 (defn state! [obj arg] (set! (.state (the obj ArcadiaState)) arg))
 (defn swat! [obj fun]
   (let [st (the obj ArcadiaState)]
