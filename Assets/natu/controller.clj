@@ -14,30 +14,54 @@
   (reduce #(assoc %1 %2 (id->intity %2)) {} intities))
 (defn ->lctrl [this] (-> this state :lctrl))
 (defn ->ctrlpt [this] (-> this state :ctrlpt))
+(defn ->selection-box [this] (-> this state :selection-box))
+
 (defn is-selected? [this id] (get (->selected this) id))
 (defn click? [this] (= :click (->lctrl this)))
 (defn drag? [this] (= :drag (->lctrl this)))
 
 (defn create! [this name & {:as args}]
-  (let [prefab (prefab! name)
-        id (->id prefab)
+  (let [prefab   (prefab! name)
+        id       (->id prefab)
         intities (->intities this)]
     (parent! prefab this)
     (swat! prefab #(merge % args))
     (swat! this #(assoc % :intities (conj intities id))))
   this)
 
-(defn try-drag! [this]
-  (let [ctrlpt (mouse-pos)]
-    (when (not= ctrlpt (->ctrlpt this))
-      (swat! this #(assoc % :lctrl :drag)))))
-
 (defn start-click! [this]
-  (swat! this #(-> %
-                  (assoc :lctrl  :click)
-                  (assoc :ctrlpt (mouse-pos)))))
+  (let [mpos (v2mpos)]
+    (swat! this
+     #(-> %
+          (assoc :lctrl  :click)
+          (assoc :ctrlpt mpos)))))
+
+(defn corners [ctrlpt1 ctrlpt2]
+  (let [x1 (.x ctrlpt1) x2 (.x ctrlpt2)
+        y1 (.y ctrlpt1) y2 (.y ctrlpt2)]
+    [(v2 (<of x2 x1) (<of y2 y1))
+     (v2 (>of x2 x1) (>of y2 y1))]))
+
+(defn get-box-vecs [ctrlpt1 ctrlpt2]
+  (let [[a b] (corners ctrlpt1 ctrlpt2)]
+    [(v2- b a)
+     (v2* (v2+ a b (v2- (scrn-dims))) 0.5)]))
+
+(defn try-drag! [this]
+  (let [ctrlpt2 (v2mpos)
+        ctrlpt1 (->ctrlpt this)]
+    (when (not= ctrlpt2 ctrlpt1)
+      (swat! this #(assoc % :lctrl :drag))
+      (let [[sd ap] (get-box-vecs ctrlpt1 ctrlpt2)
+            selection-box (->selection-box this)]
+        (set! (.anchoredPosition selection-box) ap)
+        (set! (.sizeDelta selection-box) sd)))))
+
+(defn reset-selection! [this]
+  (set! (.sizeDelta (->selection-box this)) (v2 0 0)))
 
 (defn click-over! [this]
+  (reset-selection! this)
   (when-let [hit (mouse->hit controllable?)]
     (swat! this #(assoc % :selected #{(->id hit)}))))
 
@@ -45,9 +69,10 @@
   (let [entities  (child-components this)
         owned     (filter controllable? entities)
         owned-ids (into #{} (map ->id owned))]
+    (reset-selection! this)
     (swat! this #(assoc % :selected owned-ids))))
 
-(defn done-click! [this]
+(defn mouse-up! [this]
   (case (->lctrl this)
     :click (click-over! this)
     :drag  (drag-over! this))
@@ -63,13 +88,8 @@
   (cond
     (left-click) (start-click! this)
     (left-held)  (try-drag! this)
-    (left-up)    (done-click! this))
+    (left-up)    (mouse-up! this))
   this)
-
-(defn retarget [intity target selected?]
-  (if (and target selected? (:controllable intity))
-    (assoc-in intity [:steering :destination] target)
-    intity))
 
 (defn update-intities! [this]
   (let [intities     (->intities this)
@@ -77,6 +97,11 @@
         new-intities (reduce update-map i-map intities)]
     (doseq [[id intity] new-intities]
       (state! (->obj id) intity))))
+
+(defn retarget [intity target selected?]
+  (if (and target selected? (:controllable intity))
+    (assoc-in intity [:steering :destination] target)
+    intity))
 
 (defn sync-in! [this target selected]
   (doseq [entity (->entities this)]
@@ -90,13 +115,19 @@
 
 ;; Hooks
 (defn update! [this]
+  "Update Hook for an RTS Controller"
   (-> this
       (handle-controls!)
       (sync-in! (->target this) (->selected this))
       (update-intities!)))
 
 (defn start! [this]
-  (state! this {:intities #{} :target nil :selected nil})
+  "Start Hook for an RTS Controller"
+  (state! this {:intities #{}
+                :target nil
+                :selected nil
+                ;; TODO: Create the selection box inside here
+                :selection-box (the "Selection Box" "RectTransform")})
   (-> this
       (create! "minotaur"
                :controllable true)))

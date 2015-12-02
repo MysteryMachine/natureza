@@ -16,9 +16,12 @@
 
 ;; Hooks
 (defn sync-steering! [this]
+  "Update Hook for an Entity"
   (let [agent (nav-mesh-agent* this)
         dest (->destination this)]
     (if dest (move! this (->destination this)))
     (set! (.speed agent) (->speed this))))
 
-(defn start! [this] (swat! this basis))
+(defn start!
+  "Start Hook for an Entity"
+  [this] (swat! this basis))

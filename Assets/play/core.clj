@@ -6,16 +6,14 @@
     Debug        Physics
     Transform    RaycastHit
     Input        Ray
-    Vector3      Camera
+    Vector2      Camera
     Resources    Quaternion
-    GameObject]
+    GameObject   Screen]
    Caster
    ArcadiaState))
 
 ;; Logging
 (defn log [msg] (Debug/Log (str msg)))
-
-(defn go? [obj] (= GameObject (type obj)))
 
 ;; Accessing Object
 (defn the
@@ -30,6 +28,7 @@
   [obj component]
   (.GetComponentInChildren (the obj) component))
 
+(defn go? [obj] (= GameObject (type obj)))
 (defn ->go [obj] (.gameObject obj))
 
 (defn transform [obj] (the obj Transform))
@@ -54,7 +53,28 @@
 
 (defn ->name ^String [obj] (.name obj))
 
+;; Number
+
+;; Greater of and Lesser of
+(defn <of [a b] (if (< a b) a b))
+(defn >of [a b] (if (> a b) a b))
+
 ;; Vector
+(defn v2 [x y] (Vector2. x y))
+
+(defn v2op [op v1 vs]
+  (Vector2. (reduce #(op %1 (.x %2)) (.x v1) vs)
+            (reduce #(op %1 (.y %2)) (.y v1) vs)))
+
+(defn v2-
+  ([v] (v2 (- (.x v))
+           (- (.y v))))
+  ([v v1 & vs] (v2op - v (cons v1 vs))))
+(defn v2+ [v1 & vs] (v2op + v1 vs))
+
+(defn v2* [v n]
+  (Vector2. (* n (.x v)) (* n (.y v))))
+
 (defn v3
   (^Vector3 [[x y z]] (Vector3. x y z))
   (^Vector3 [x y z]   (Vector3. x y z)))
@@ -69,6 +89,9 @@
 
 (defn position ^Vector3 [obj] (.position (transform obj)))
 (defn dist [a b] (Vector3/Distance (position a) (position b)))
+
+(defn scrn-dims []
+  (v2 Screen/width Screen/height))
 
 ;; Nav Mesh Agent
 (defn nav-mesh-agent ^NavMeshAgent [obj] (the obj NavMeshAgent))
@@ -103,7 +126,10 @@
 (defmethod anim-set*! :default [this name arg]
   (throw (str "Unsure how to set animation " arg " for property " name)))
 
-(defn sync-agent-velocity! [this]
+(defn sync-agent-velocity!
+  "Update hook meant for syncing a velocity field in an animtor
+  to a NavMeshAgent's velocity on or inside a GameObject."
+  [this]
   (anim-set*!
    this
    "velocity"
@@ -113,7 +139,12 @@
 
 (defn main-camera ^Camera [] (Camera/main))
 
-(defn mouse-pos ^Vector3 [] (Input/mousePosition))
+;; Mouse
+
+(defn mouse-pos  ^Vector3 [] (Input/mousePosition))
+(defn v2mpos []
+  (let [-mpos (mouse-pos)]
+    (v2 (.x -mpos) (.y -mpos))))
 
 (defn right-click [] (Input/GetMouseButtonDown 1))
 (defn right-held  [] (Input/GetMouseButton     1))
@@ -136,6 +167,9 @@
            (obj-filter go) go
            (point-filter go) (.point info)
            :else nil))))))
+
+(defn mouse->scrn []
+  (.ScreenPointToViewportPoint (main-camera) (mouse-pos)))
 
 ;; Prefab
 (defn clone!
@@ -179,3 +213,4 @@
         retval))))
 
 (defn ->obj [id] (get @ids id))
+

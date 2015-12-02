@@ -1,5 +1,8 @@
 (ns natu.intities)
 
+;; An intity is the internal, Clojure representation of
+;; an entity. The Entity is the outer Unity shell.
+
 (defmulti basis :type)
 (defn merge-basis [basis this] (merge basis (dissoc this :type)))
 

@@ -13,6 +13,7 @@ GameObject:
   - 114: {fileID: 11441710}
   - 114: {fileID: 11422028}
   - 114: {fileID: 11403812}
+  - 136: {fileID: 13651178}
   m_Layer: 0
   m_Name: minotaur
   m_TagString: Untagged
@@ -127,6 +128,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializedVar: natu.entities/start!
+--- !u!136 &13651178
+CapsuleCollider:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 132690}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  m_Radius: 1.00422335
+  m_Height: 4.87405872
+  m_Direction: 1
+  m_Center: {x: 0, y: 2, z: 0}
 --- !u!137 &13760624
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1
