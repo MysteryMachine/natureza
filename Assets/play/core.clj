@@ -53,7 +53,14 @@
 
 (defn ->name ^String [obj] (.name obj))
 
-;; Number
+;; Id
+(defonce ^:private ids   (atom {}))
+
+(defn ->id [obj] (.GetInstanceID (->go (the obj))))
+(defn register-id! [obj]
+  (reset! ids (assoc @ids (->id obj) obj))
+  obj)
+(defn ->obj [id] (get @ids id))
 
 ;; Greater of and Lesser of
 (defn <of [a b] (if (< a b) a b))
@@ -83,6 +90,7 @@
   (v3 (reduce #(op %1 (.x %2)) (.x v1) vs)
       (reduce #(op %1 (.y %2)) (.y v1) vs)
       (reduce #(op %1 (.z %2)) (.z v1) vs)))
+
 (defn v3-
   ([v] (v3 (- (.x v))
            (- (.y v))
@@ -222,9 +230,8 @@
        (filter
         (fn [o]
           (if-let [trs (.transform o)]
-            (do (log trs)
-              (if-let [go (.gameObject trs)]
-                (op go)))))
+            (if-let [go (.gameObject trs)]
+              (op go))))
         (vec swept))))))
 
 (defn mouse->hit
@@ -244,14 +251,16 @@
   ([^GameObject obj]
    (let [go (GameObject/Instantiate obj)]
      (set! (.name go) (.name obj))
-     go))
+     (register-id! go)))
   ([^GameObject obj ^Vector3 pos ^Quaternion rot]
    (let [go (GameObject/Instantiate obj pos rot)]
      (set! (.name go) (.name obj))
-     go)))
+     (register-id! go))))
 
 (defn prefab!
   ([^String name] (clone! (Resources/Load name)))
+  ([^String name  ^Vector3 pos]
+   (clone! (Resources/Load name) pos (q4 0 0 0 1)))
   ([^String name  ^Vector3 pos ^Quaternion rot]
    (clone! (Resources/Load name) pos rot)))
 
@@ -264,21 +273,4 @@
 (defn swat! [obj fun]
   (let [st (the obj ArcadiaState)]
     (set! (.state st) (fun (.state st)))))
-
-;; Id
-(def ^:private id-gen (atom 0))
-(def ^:private ids    (atom {}))
-(def ^:private objs   (atom {}))
-
-(defn ->id [obj]
-  (let [go (->go obj)
-        retval (get @objs go)]
-    (if retval
-      retval
-      (let [retval (reset! id-gen (inc @id-gen))]
-        (reset! ids  (assoc @ids  retval go))
-        (reset! objs (assoc @objs go     retval))
-        retval))))
-
-(defn ->obj [id] (get @ids id))
 

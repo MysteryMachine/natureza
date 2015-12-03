@@ -20,8 +20,8 @@
 (defn click? [this] (= :click (->lctrl this)))
 (defn drag? [this] (= :drag (->lctrl this)))
 
-(defn create! [this name & {:as args}]
-  (let [prefab   (prefab! name)
+(defn create! [this name pos & {:as args}]
+  (let [prefab   (prefab! name pos)
         id       (->id prefab)
         intities (->intities this)]
     (parent! prefab this)
@@ -117,17 +117,22 @@
       (state! (->obj id) intity))))
 
 (defn retarget [intity target selected?]
+  (log intity)
+  (log target)
   (if (and target selected? (:controllable intity))
     (assoc-in intity [:steering :destination] target)
     intity))
 
 (defn sync-in! [this target selected]
+  (log selected)
   (doseq [entity (->entities this)]
     (let [selected? (get selected (->id entity))
+          _ (log selected?)
           new-intity
           (-> (state entity)
               (assoc :position (position entity))
               (retarget target selected?))]
+      (log "---")
       (state! entity new-intity)))
   this)
 
@@ -147,5 +152,5 @@
                 ;; TODO: Create the selection box inside here
                 :selection-box (the "Selection Box" "RectTransform")})
   (-> this
-      (create! "minotaur"
-               :controllable true)))
+      (create! "rat" (v3 -46.2 0. 0.)  :controllable true)
+      (create! "minotaur" (v3 -5.2 0. 0.) :controllable true)))
