@@ -1,8 +1,8 @@
-(ns natu.controller
+(ns rts.controller
   (:use arcadia.core
-        play.core
-        [natu.entities :exclude [start!]]
-        natu.intities)
+        folha.core
+        [rts.entities :exclude [start!]]
+        rts.intities)
   (:import [UnityEngine Ray
             Physics RaycastHit]))
 

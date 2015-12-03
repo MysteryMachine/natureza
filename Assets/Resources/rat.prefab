@@ -28,9 +28,9 @@ GameObject:
   - 195: {fileID: 19530744}
   - 65: {fileID: 6536808}
   - 114: {fileID: 11435290}
-  - 114: {fileID: 11454792}
-  - 114: {fileID: 11457568}
-  - 114: {fileID: 11494342}
+  - 114: {fileID: 11487968}
+  - 114: {fileID: 11483890}
+  - 114: {fileID: 11436254}
   m_Layer: 0
   m_Name: rat
   m_TagString: Untagged
@@ -104,7 +104,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   edn: '{:type :rat}'
---- !u!114 &11454792
+--- !u!114 &11436254
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 166572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32c8aedeab7cb421da9a055c86933987, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serializedVar: rts.entities/sync-steering!
+--- !u!114 &11483890
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 166572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32c8aedeab7cb421da9a055c86933987, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serializedVar: folha.core/sync-agent-velocity!
+--- !u!114 &11487968
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -115,31 +139,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98269a5891b3245db82aaf98a8faa9a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serializedVar: natu.entities/start!
---- !u!114 &11457568
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 166572}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32c8aedeab7cb421da9a055c86933987, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  serializedVar: play.core/sync-agent-velocity!
---- !u!114 &11494342
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 166572}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32c8aedeab7cb421da9a055c86933987, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  serializedVar: natu.entities/sync-steering!
+  serializedVar: rts.entities/start!
 --- !u!137 &13714054
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1

@@ -1,4 +1,4 @@
-(ns natu.intities)
+(ns rts.intities)
 
 ;; An intity is the internal, Clojure representation of
 ;; an entity. The Entity is the outer Unity shell.

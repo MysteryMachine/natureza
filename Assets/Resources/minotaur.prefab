@@ -11,7 +11,7 @@ GameObject:
   - 195: {fileID: 19530350}
   - 114: {fileID: 11422274}
   - 114: {fileID: 11441710}
-  - 114: {fileID: 11422028}
+  - 114: {fileID: 11458794}
   - 114: {fileID: 11403812}
   - 136: {fileID: 13651178}
   m_Layer: 0
@@ -91,19 +91,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32c8aedeab7cb421da9a055c86933987, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serializedVar: natu.entities/sync-steering!
---- !u!114 &11422028
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 132690}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 32c8aedeab7cb421da9a055c86933987, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  serializedVar: play.core/sync-agent-velocity!
+  serializedVar: rts.entities/sync-steering!
 --- !u!114 &11422274
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -127,7 +115,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98269a5891b3245db82aaf98a8faa9a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serializedVar: natu.entities/start!
+  serializedVar: rts.entities/start!
+--- !u!114 &11458794
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 132690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32c8aedeab7cb421da9a055c86933987, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  serializedVar: folha.core/sync-agent-velocity!
 --- !u!136 &13651178
 CapsuleCollider:
   m_ObjectHideFlags: 1

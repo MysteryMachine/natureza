@@ -1,7 +1,7 @@
-(ns natu.entities
+(ns rts.entities
   (:use arcadia.core
-        play.core
-        natu.intities)
+        folha.core
+        rts.intities)
   (:import [UnityEngine Vector3]))
 
 (defn destination [dest]

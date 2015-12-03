@@ -114,7 +114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32c8aedeab7cb421da9a055c86933987, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serializedVar: natu.controller/update!
+  serializedVar: rts.controller/update!
 --- !u!114 &102185965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,7 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98269a5891b3245db82aaf98a8faa9a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serializedVar: natu.controller/start!
+  serializedVar: rts.controller/start!
 --- !u!4 &102185966
 Transform:
   m_ObjectHideFlags: 0
@@ -928,48 +928,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1303771964}
   m_RootOrder: 3
---- !u!1001 &1775881504
-Prefab:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 442308, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-      propertyPath: m_LocalPosition.x
-      value: 12.3868294
-      objectReference: {fileID: 0}
-    - target: {fileID: 442308, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-      propertyPath: m_LocalPosition.y
-      value: -.714580536
-      objectReference: {fileID: 0}
-    - target: {fileID: 442308, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-      propertyPath: m_LocalPosition.z
-      value: .506002963
-      objectReference: {fileID: 0}
-    - target: {fileID: 442308, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-      propertyPath: m_LocalRotation.x
-      value: -8.43337773e-08
-      objectReference: {fileID: 0}
-    - target: {fileID: 442308, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-      propertyPath: m_LocalRotation.y
-      value: .763978839
-      objectReference: {fileID: 0}
-    - target: {fileID: 442308, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-      propertyPath: m_LocalRotation.z
-      value: 7.48073603e-09
-      objectReference: {fileID: 0}
-    - target: {fileID: 442308, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-      propertyPath: m_LocalRotation.w
-      value: -.64524132
-      objectReference: {fileID: 0}
-    - target: {fileID: 442308, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-      propertyPath: m_RootOrder
-      value: 6
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_ParentPrefab: {fileID: 100100000, guid: a252dd2bd091a46058484964ed21b81a, type: 2}
-  m_IsPrefabParent: 0
 --- !u!1 &1829042419
 GameObject:
   m_ObjectHideFlags: 0
