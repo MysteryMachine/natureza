@@ -22,6 +22,5 @@
     (if dest (move! this (->destination this)))
     (set! (.speed agent) (->speed this))))
 
-(defn start!
-  "Start Hook for an Entity"
-  [this] (swat! this basis))
+(defn start! [this type init]
+  (state! this (basis type init)))

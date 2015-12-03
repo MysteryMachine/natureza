@@ -3,8 +3,12 @@
         folha.core
         [rts.entities :exclude [start!]]
         rts.intities)
+  (:require [rts.entities :as e])
   (:import [UnityEngine Ray
             Physics RaycastHit]))
+
+(load-hooks)
+(declare start!)
 
 (defn ->selected [this] (-> this state :selected))
 (defn ->target   [this] (-> this state :target))
@@ -24,8 +28,11 @@
   (let [prefab   (prefab! name pos)
         id       (->id prefab)
         intities (->intities this)]
+    (+state prefab
+       (UpdateHook sync-agent-velocity!)
+       (UpdateHook sync-steering!))
+    (e/start! prefab (keyword name) args)
     (parent! prefab this)
-    (swat! prefab #(merge % args))
     (swat! this #(assoc % :intities (conj intities id))))
   this)
 
@@ -117,22 +124,17 @@
       (state! (->obj id) intity))))
 
 (defn retarget [intity target selected?]
-  (log intity)
-  (log target)
   (if (and target selected? (:controllable intity))
     (assoc-in intity [:steering :destination] target)
     intity))
 
 (defn sync-in! [this target selected]
-  (log selected)
   (doseq [entity (->entities this)]
     (let [selected? (get selected (->id entity))
-          _ (log selected?)
           new-intity
           (-> (state entity)
               (assoc :position (position entity))
               (retarget target selected?))]
-      (log "---")
       (state! entity new-intity)))
   this)
 

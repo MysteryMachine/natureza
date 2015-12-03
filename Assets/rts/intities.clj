@@ -3,14 +3,12 @@
 ;; An intity is the internal, Clojure representation of
 ;; an entity. The Entity is the outer Unity shell.
 
-(defmulti basis :type)
-(defn merge-basis [basis this] (merge basis (dissoc this :type)))
-
+(defmulti basis (fn [type _] type))
 (defmulti update-map (fn [env id] (type (env id))))
 
 (defrecord Rat [])
-(defmethod basis :rat [init]
-  (merge-basis
+(defmethod basis :rat [type init] 
+  (merge
    (map->Rat
     {:steering {:speed 4.}
      :hp 10})
@@ -18,8 +16,8 @@
 (defmethod update-map Rat [env id] env)
 
 (defrecord Minotaur [])
-(defmethod basis :minotaur [init]
-  (merge-basis
+(defmethod basis :minotaur [type init]
+  (merge
    (map->Minotaur
     {:steering {:speed 2.}
      :hp 10})
