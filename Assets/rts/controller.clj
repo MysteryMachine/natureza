@@ -1,7 +1,7 @@
 (ns rts.controller
   (:use arcadia.core
         folha.core
-        [rts.entities :exclude [start!]]
+        [rts.entities :exclude [start! update! ->selected]] 
         rts.intities)
   (:require [rts.entities :as e])
   (:import [UnityEngine Ray
@@ -26,11 +26,11 @@
 
 (defn create! [this name pos & {:as args}]
   (let [prefab   (prefab! name pos)
-        id       (->id prefab)
+        id       (->id prefab) 
         intities (->intities this)]
     (+state prefab
-       (UpdateHook sync-agent-velocity!)
-       (UpdateHook sync-steering!))
+      (UpdateHook [this] (sync-agent-velocity! this))
+      (UpdateHook [this] (e/update! this)))
     (e/start! prefab (keyword name) args)
     (parent! prefab this)
     (swat! this #(assoc % :intities (conj intities id))))
@@ -134,6 +134,7 @@
           new-intity
           (-> (state entity)
               (assoc :position (position entity))
+              (assoc :selected selected?)
               (retarget target selected?))]
       (state! entity new-intity)))
   this)

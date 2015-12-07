@@ -11,10 +11,12 @@
 (defn ->steering     [e] (-> e state :steering))
 (defn ->destination  [e] (-> e ->steering :destination))
 (defn ->speed        [e] (-> e ->steering :speed))
+(defn ->selected     [e] (-> e state :selected))
+(defn ->hp-bar       [e] (-> e state :hp-bar))
+(defn ->select-circle [e] (-> e state :select-circle))
 
 (defn id->intity [id] (state (->obj id)))
 
-;; Hooks
 (defn sync-steering! [this]
   "Update Hook for an Entity"
   (let [agent (nav-mesh-agent* this)
@@ -22,5 +24,33 @@
     (if dest (move! this (->destination this)))
     (set! (.speed agent) (->speed this))))
 
+(defn align-hp-bar! [this]
+  (position! (->hp-bar this)
+             (v3+ (position this)
+                  (v3 0 6 -3))))
+
+(defn scale-selected! [this]
+  (scale! (->select-circle this)
+          (if (->selected this)
+            (v3 10 10 10)
+            (v3 0 0 0))))
+
+;; Hooks
+(defn update! [this]
+  "Update Hook for an Entity"
+  (doto this
+    (sync-steering!)
+    (align-hp-bar!)
+    (scale-selected!)))
+
 (defn start! [this type init]
-  (state! this (basis type init)))
+  (let [hp-bar (prefab! "hp-bar")
+        selected (prefab! "selected")
+        st (-> (basis type init)
+               (assoc :hp-bar hp-bar)
+               (assoc :select-circle selected))]
+    (rotation! hp-bar 0.3 0 0 0.95)
+    (parent! hp-bar (the "HP Bars"))
+    (parent! selected this)
+    (local-position! selected 0 0 0)
+    (state! this st)))
