@@ -10,15 +10,15 @@
 (load-hooks)
 (declare start!)
 
-(defn ->selected [this] (-> this state :selected))
-(defn ->target   [this] (-> this state :target))
-(defn ->intities [this] (-> this state :intities))
+(defn ->selected [this] (-> this ->state :selected))
+(defn ->target   [this] (-> this ->state :target))
+(defn ->intities [this] (-> this ->state :intities))
 (defn ->entities [this] (map ->obj (->intities this)))
 (defn ->intity-map [intities]
   (reduce #(assoc %1 %2 (id->intity %2)) {} intities))
-(defn ->lctrl [this] (-> this state :lctrl))
-(defn ->ctrlpt [this] (-> this state :ctrlpt))
-(defn ->selection-box [this] (-> this state :selection-box))
+(defn ->lctrl [this] (-> this ->state :lctrl))
+(defn ->ctrlpt [this] (-> this ->state :ctrlpt))
+(defn ->selection-box [this] (-> this ->state :selection-box))
 
 (defn is-selected? [this id] (get (->selected this) id))
 (defn click? [this] (= :click (->lctrl this)))
@@ -26,11 +26,11 @@
 
 (defn create! [this name pos & {:as args}]
   (let [prefab   (prefab! name pos)
-        id       (->id prefab) 
+        id       (->id prefab)
         intities (->intities this)]
     (+state prefab
-      (UpdateHook [this] (sync-agent-velocity! this))
-      (UpdateHook [this] (e/update! this)))
+      (UpdateHook [this state] (sync-agent-velocity! this state))
+      (UpdateHook [this state] (e/update! this state)))
     (e/start! prefab (keyword name) args)
     (parent! prefab this)
     (swat! this #(assoc % :intities (conj intities id))))
@@ -132,7 +132,7 @@
   (doseq [entity (->entities this)]
     (let [selected? (get selected (->id entity))
           new-intity
-          (-> (state entity)
+          (-> (->state entity)
               (assoc :position (position entity))
               (assoc :selected selected?)
               (retarget target selected?))]

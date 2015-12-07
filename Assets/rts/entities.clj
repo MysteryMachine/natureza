@@ -7,15 +7,15 @@
 (defn destination [dest]
   (if (= Vector3 (type dest)) dest (position dest)))
 
-(defn controllable?  [e] (-> e state :controllable))
-(defn ->steering     [e] (-> e state :steering))
+(defn controllable?  [e] (-> e ->state :controllable))
+(defn ->steering     [e] (-> e ->state :steering))
 (defn ->destination  [e] (-> e ->steering :destination))
 (defn ->speed        [e] (-> e ->steering :speed))
-(defn ->selected     [e] (-> e state :selected))
-(defn ->hp-bar       [e] (-> e state :hp-bar))
-(defn ->select-circle [e] (-> e state :select-circle))
+(defn ->selected     [e] (-> e ->state :selected))
+(defn ->hp-bar       [e] (-> e ->state :hp-bar))
+(defn ->select-circle [e] (-> e ->state :select-circle))
 
-(defn id->intity [id] (state (->obj id)))
+(defn id->intity [id] (->state (->obj id)))
 
 (defn sync-steering! [this]
   "Update Hook for an Entity"
@@ -36,12 +36,13 @@
             (v3 0 0 0))))
 
 ;; Hooks
-(defn update! [this]
+(defn update! [this state]
   "Update Hook for an Entity"
   (doto this
     (sync-steering!)
     (align-hp-bar!)
-    (scale-selected!)))
+    (scale-selected!))
+  state)
 
 (defn start! [this type init]
   (let [hp-bar (prefab! "hp-bar")
