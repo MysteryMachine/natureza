@@ -1,21 +1,21 @@
 (ns rts.controller
   (:use arcadia.core
         folha.core
-        [rts.entities :exclude [start! update! ->selected]] 
-        rts.intities)
-  (:require [rts.entities :as e])
+        [rts.entities.unity :exclude [start! update! ->selected]]
+        rts.entities.core)
+  (:require [rts.entities.unity :as e])
   (:import [UnityEngine Ray
             Physics RaycastHit]))
 
 (load-hooks)
 (declare start!)
 
-(defn ->selected [this] (-> this ->state :selected))
+(defn ->selected [this] (-> this ->state :selected-ids))
 (defn ->target   [this] (-> this ->state :target))
-(defn ->intities [this] (-> this ->state :intities))
-(defn ->entities [this] (map ->obj (->intities this)))
-(defn ->intity-map [intities]
-  (reduce #(assoc %1 %2 (id->intity %2)) {} intities))
+(defn ->entity-states [this] (-> this ->state :entity-ids))
+(defn ->entities [this] (map ->obj (->entity-states this)))
+(defn ->state-map [entity-states]
+  (reduce #(assoc %1 %2 (id->state %2)) {} entity-states))
 (defn ->lctrl [this] (-> this ->state :lctrl))
 (defn ->ctrlpt [this] (-> this ->state :ctrlpt))
 (defn ->selection-box [this] (-> this ->state :selection-box))
@@ -27,13 +27,13 @@
 (defn create! [this name pos & {:as args}]
   (let [prefab   (prefab! name pos)
         id       (->id prefab)
-        intities (->intities this)]
+        entity-states (->entity-states this)]
     (+state prefab
       (UpdateHook [this state] (sync-agent-velocity! this state))
       (UpdateHook [this state] (e/update! this state)))
     (e/start! prefab (keyword name) args)
     (parent! prefab this)
-    (swat! this #(assoc % :intities (conj intities id))))
+    (swat! this #(assoc % :entity-ids (conj entity-states id))))
   this)
 
 (defn start-click! [this]
@@ -72,7 +72,7 @@
 (defn click-over! [this]
   (reset-selection! this)
   (when-let [hit (mouse->hit controllable?)]
-    (swat! this #(assoc % :selected #{(->id hit)}))))
+    (swat! this #(assoc % :selected-ids #{(->id hit)}))))
 
 (defn selectbox-center [this]
   (scrn->worldpt
@@ -95,7 +95,7 @@
         entities (map #(.transform %) hits)
         owned-ids (into #{} (map ->id entities))]
     (reset-selection! this)
-    (swat! this #(assoc % :selected owned-ids))))
+    (swat! this #(assoc % :selected-ids owned-ids))))
 
 (defn mouse-up! [this]
   (case (->lctrl this)
@@ -116,27 +116,27 @@
     (left-up)    (mouse-up! this))
   this)
 
-(defn update-intities! [this]
-  (let [intities     (->intities this)
-        i-map        (->intity-map intities)
-        new-intities (reduce update-map i-map intities)]
-    (doseq [[id intity] new-intities]
-      (state! (->obj id) intity))))
+(defn update-entities! [this]
+  (let [entity-states     (->entity-states this)
+        i-map             (->state-map entity-states)
+        new-entity-states (reduce update-map i-map entity-states)]
+    (doseq [[id state] new-entity-states]
+      (state! (->obj id) state))))
 
-(defn retarget [intity target selected?]
-  (if (and target selected? (:controllable intity))
-    (assoc-in intity [:steering :destination] target)
-    intity))
+(defn retarget [entity-state target selected?]
+  (if (and target selected? (:controllable entity-state))
+    (assoc-in entity-state [:steering :destination] target)
+    entity-state))
 
 (defn sync-in! [this target selected]
   (doseq [entity (->entities this)]
     (let [selected? (get selected (->id entity))
-          new-intity
+          new-entity-state
           (-> (->state entity)
               (assoc :position (position entity))
               (assoc :selected selected?)
               (retarget target selected?))]
-      (state! entity new-intity)))
+      (state! entity new-entity-state)))
   this)
 
 ;; Hooks
@@ -145,13 +145,13 @@
   (-> this
       (handle-controls!)
       (sync-in! (->target this) (->selected this))
-      (update-intities!)))
+      (update-entities!)))
 
 (defn start! [this]
   "Start Hook for an RTS Controller"
-  (state! this {:intities #{}
+  (state! this {:entity-ids #{}
                 :target nil
-                :selected nil
+                :selected-ids nil
                 ;; TODO: Create the selection box inside here
                 :selection-box (the "Selection Box" "RectTransform")})
   (-> this
