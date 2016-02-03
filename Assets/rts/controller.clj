@@ -2,7 +2,8 @@
   (:use arcadia.core
         folha.core
         [rts.entities.unity :exclude [start! update! ->selected]]
-        rts.entities.core)
+        rts.entities.core
+        rts.squad)
   (:require [rts.entities.unity :as e])
   (:import [UnityEngine Ray
             Physics RaycastHit]))
@@ -106,7 +107,7 @@
 (defn handle-controls! [this]
   (cond
     (right-click)
-    (when-let [hit (mouse->hit #(parent? % this) (fn [_] true))]
+    (when-let [hit (mouse->hit #(parent? this %) (fn [_] true))]
       (swat! this #(assoc % :target hit)))
     (right-up) (swat! this #(assoc % :target nil))
     :else nil)
@@ -123,20 +124,25 @@
     (doseq [[id state] new-entity-states]
       (state! (->obj id) state))))
 
-(defn retarget [entity-state target selected?]
+(defn retarget [entity-state id target selected? squad-pos]
   (if (and target selected? (:controllable entity-state))
-    (assoc-in entity-state [:steering :destination] target)
+    (let [final-target (or (get squad-pos id) target)]
+      (assoc-in entity-state [:steering :destination] final-target))
     entity-state))
 
-(defn sync-in! [this target selected]
-  (doseq [entity (->entities this)]
-    (let [selected? (get selected (->id entity))
-          new-entity-state
-          (-> (->state entity)
-              (assoc :position (position entity))
-              (assoc :selected selected?)
-              (retarget target selected?))]
-      (state! entity new-entity-state)))
+(defn sync-entities! [this]
+  (let [target (->target this)
+        selected (->selected this)
+        squad-pos (box-squad selected target)]
+   (doseq [entity (->entities this)]
+     (let [id (->id entity)
+           selected? (get selected id)
+           new-entity-state
+           (-> (->state entity)
+               (assoc :position (position entity))
+               (assoc :selected selected?)
+               (retarget id target selected? squad-pos))]
+       (state! entity new-entity-state))))
   this)
 
 ;; Hooks
@@ -144,7 +150,7 @@
   "Update Hook for an RTS Controller"
   (-> this
       (handle-controls!)
-      (sync-in! (->target this) (->selected this))
+      (sync-entities!)
       (update-entities!)))
 
 (defn start! [this]
@@ -153,7 +159,8 @@
                 :target nil
                 :selected-ids nil
                 ;; TODO: Create the selection box inside here
-                :selection-box (the "Selection Box" "RectTransform")})
+                :selection-box (the "Selection Box" "RectTransform")
+                :fow (the "FoW")}) 
   (-> this
       (create! "rat" (v3 -46.2 0. 0.)  :controllable true)
-      (create! "minotaur" (v3 -5.2 0. 0.) :controllable true)))
+      (create! "minotaur" (v3 -5.2 0. 0.))))
