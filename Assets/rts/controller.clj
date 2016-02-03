@@ -72,7 +72,7 @@
 
 (defn click-over! [this]
   (reset-selection! this)
-  (when-let [hit (mouse->hit controllable?)]
+  (when-let [hit (mouse->hit controllable? (fn [_] false) :layer-mask (bit-shift-left 1 9))]
     (swat! this #(assoc % :selected-ids #{(->id hit)}))))
 
 (defn selectbox-center [this]
@@ -107,7 +107,9 @@
 (defn handle-controls! [this]
   (cond
     (right-click)
-    (when-let [hit (mouse->hit #(parent? this %) (fn [_] true))]
+    (when-let [hit (mouse->hit #(parent? this %)
+                               (fn [_] true)
+                               :layer-mask (bit-shift-left 1 9))]
       (swat! this #(assoc % :target hit)))
     (right-up) (swat! this #(assoc % :target nil))
     :else nil)

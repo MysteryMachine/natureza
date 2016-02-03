@@ -43,8 +43,8 @@
     (set! (.mainTexture material) tex)
     (state! this
      {:ppi (int (/ fow-size (.. this transform lossyScale x)))
-       :center-px fow-center-px
-       :layer 8})))
+      :center-px fow-center-px
+      :layer (bit-shift-left 1 8)})))
 
 (defn update! [this]
   (let [{:keys [ppi center-px] :as state} (->state this)
