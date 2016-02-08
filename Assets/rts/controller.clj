@@ -108,8 +108,7 @@
   (cond
     (right-click)
     (when-let [hit (mouse->hit #(parent? this %)
-                               (fn [_] true)
-                               :layer-mask (bit-shift-left 1 9))]
+                               (fn [_] true))]
       (swat! this #(assoc % :target hit)))
     (right-up) (swat! this #(assoc % :target nil))
     :else nil)
