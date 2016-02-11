@@ -22,23 +22,14 @@
 
 (definline pythag [i j] `(+ (* ~i ~i) (* ~j ~j)))
 
-(defn create-circle [radius r-sq]
-  (loop [circle [], i (- radius), j (- radius)]
-    (cond
-      (= i radius) circle
-      (= j radius) (recur circle (inc i) (- radius))
-      :else (recur
-             (if (< (pythag i j) r-sq)
-               (conj circle [i j])
-               circle)
-             i
-             (inc j)))))
-
-(defn offset-circle [circle hit-pt]
-  (map (fn [pt]
-         [(int (+ (first pt)  (.x hit-pt)))
-          (int (+ (second pt) (.z hit-pt)))])
-       circle))
+(defn circle-pts [r [center-x center-y]]
+  (let [r-range (range (- r) (inc r))
+        rsq (* r r)]
+    (into #{}
+          (for [i r-range
+                j r-range
+                :when (< (+ (* i i) (* j j)) rsq)]
+            [(+ center-x i) (+ center-y j)]))))
 
 (defn into! [trans-map elems]
   (loop [tmap trans-map
@@ -47,17 +38,29 @@
       (recur (conj! tmap (first es)) (rest es))
       tmap)))
 
+(defn offset-pxs [hit circle pos]
+  (let [x (.x hit)
+        y (.z hit)
+        pos-x (.x pos)
+        pos-y (.z pos)
+        x-center (int (- x pos-x))
+        y-center (int (- y pos-y))]
+    (map
+     (fn [[i j]]
+       [(+ i x-center)
+        (+ j y-center)])
+     circle)))
+
 (defn visible-pxs
-  [this
-   {:keys [ppi translated-pos center-px tex circle]
-    :as state}
-   init-hits]
-  (loop [pxs (transient #{})
-         hits init-hits]
-    (if (seq hits)
-      (recur (into! pxs (offset-circle circle (first hits)))
-             (rest hits))
-      (persistent! pxs))))
+  [this {:keys [tex circle] :as state} init-hits]
+  (let [pos (position this)]
+   (loop [pxs (transient #{})
+          hits init-hits]
+      (if (seq hits)
+        (let [px-seq (offset-pxs (first hits) circle pos)
+              updated-hits (into! pxs px-seq)]
+          (recur updated-hits (rest hits)))
+        (persistent! pxs)))))
 
 (defn visible-entities
   [{:keys [screen-pt layer]
@@ -78,12 +81,12 @@
 ;; would otherwise require a constructor, get on that
 (defn start! [this]
   (let [state (->state this)
-        fow-color (color 0 0 0 0.85)
+        fow-color (color 0 0 0 1)
         clear-color (color 0 0 0 0)
-        fow-size 64
-        fow-center-px (v2 (/ fow-size 2) (/ fow-size 2))
-        radius 6
-        rsq (* radius radius)
+        mid-color (color 0 0 0 0.5)
+        fow-size 1024
+        center-px [(/ fow-size 2) (/ fow-size 2)]
+        radius 12
         renderer (the this "Renderer")
         material (.sharedMaterial renderer)
         tex (texture fow-size fow-size)
@@ -93,26 +96,23 @@
     (clear-pixels! tex fow-color fow-size)
     (.Apply tex)
     (set! (.mainTexture material) tex)
-    (state! this
-            {:ppi ppi
-             :fow-color fow-color
+    (state! this 
+            {:fow-color fow-color
              :clear-color clear-color
-             :fow-size fow-size
-             :radius radius
-             :r-sq rsq
-             :circle (create-circle radius rsq)
+             :mid-color mid-color
              :tex tex
-             :center-px fow-center-px
              :layer (bit-shift-left 1 8)
-             :px-map #{}})))
+             :px-map #{}
+             :circle (circle-pts radius center-px)})))
 
 (defn update! [this]
-  (let [{:keys [tex px-map clear-color fow-color] :as state} (->state this)
+  (let [{:keys [tex px-map clear-color fow-color mid-color]
+         :as state} (->state this)
         hits (visible-entities state)
         nupxmap (visible-pxs this state hits)
         [dark-now light-now same] (diff px-map nupxmap)]
     (doseq [[i j] dark-now]
-      (.SetPixel tex i j fow-color))
+      (.SetPixel tex i j mid-color))
     (doseq [[i j] light-now]
       (.SetPixel tex i j clear-color))
     (state! this (assoc state :px-map nupxmap))
